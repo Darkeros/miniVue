@@ -4,6 +4,7 @@ class Vue {
         // 给Vue实例增加属性
         this.$el = options.el
         this.$data = options.data
+        this.$methods = options.methods
 
         // 如果指定了el的参数，对el进行解析
         if (this.$el) {
