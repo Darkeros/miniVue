@@ -38,7 +38,6 @@ class Compile {
         let childNodes = fragment.childNodes;
         this.toArray(childNodes).forEach(node => {
             // 编译子节点
-           
             if (this.isElementNode(node)) {
                 // 如果是元素，需要解析指令
                 this.compileElement(node)
@@ -49,7 +48,7 @@ class Compile {
             }
 
             // 如果当前节点还有子节点，我们需要使用递归解析
-            if (node.childNodes && node.childNodes > 0) {
+            if (node.childNodes && node.childNodes.length > 0) {
                 this.compile(node)
             }
         })
@@ -78,7 +77,12 @@ class Compile {
 
     // 解析文本节点
     compileText (node) {
-
+        let txt = node.textContent;
+        let reg = /\{\{(.+)\}\}/;
+        if (reg.test(txt)) {
+            let expr = RegExp.$1;
+            node.textContent = txt.replace(reg, this.vm.$data[expr])
+        }
     }
 
     // 工具方法
