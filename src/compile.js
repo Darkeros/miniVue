@@ -77,12 +77,7 @@ class Compile {
 
     // 解析文本节点
     compileText (node) {
-        let txt = node.textContent;
-        let reg = /\{\{(.+)\}\}/;
-        if (reg.test(txt)) {
-            let expr = RegExp.$1;
-            node.textContent = txt.replace(reg, this.vm.$data[expr])
-        }
+        CompileUtil.mustache(node, this.vm)
     }
 
     // 工具方法
@@ -105,17 +100,43 @@ class Compile {
 }
 
 let CompileUtil = {
+    mustache (node, vm) {
+        let txt = node.textContent;
+        let reg = /\{\{(.+)\}\}/;
+        if (reg.test(txt)) {
+            let expr = RegExp.$1;
+            node.textContent = txt.replace(reg, CompileUtil.gitVMValue(vm, expr))
+            new Watcher(vm, expr, (newValue, oldValue) => {
+                node.textContent = txt.replace(reg, newValue)
+            })
+        }
+    },
     // 处理text指令
     text (node, vm, expr) {
-        node.textContent = vm.$data[expr]
+        node.textContent = this.gitVMValue(vm, expr)
+        // 通过watcher对象，监听expr的数据变化，一旦变化了，执行回调函数
+        new Watcher(vm, expr, (newValue, oldValue) => {
+            node.textContent = newValue
+        })
     },
     // 处理html指令
     html (node, vm, expr) {
-        node.innerHTML = vm.$data[expr]    
+        node.innerHTML = this.gitVMValue(vm, expr)
+        new Watcher(vm, expr, (newValue, oldValue) => {
+            node.innerHTML = newValue
+        })
     },
     // 处理modal指令
     modal (node, vm, expr) {
-        node.value = vm.$data[expr]
+        let self = this;
+        node.value = this.gitVMValue(vm, expr)
+        // 实现双向数据绑定，给node注册input事件，当当前元素的value值发生改变，修改对应数据
+        node.addEventListener('input', function() {
+            self.setVMValue(vm, expr, this.value)
+        })
+        new Watcher(vm, expr, (newValue, oldValue) => {
+            node.value = newValue
+        })
     },
     eventHandler (node, vm, type, expr) {
         let eventType = type.split(':')[1];
@@ -124,5 +145,23 @@ let CompileUtil = {
             // bind() 绑定this
             node.addEventListener(eventType, vm.$methods[expr].bind(vm))
         }
+    },
+    gitVMValue (vm, expr) {
+        let data = vm.$data;
+        expr.split('.').forEach(key => {
+            data = data[key]
+        })
+        return data
+    },
+    setVMValue (vm, expr, value) {
+        let data = vm.$data
+        let arr = expr.split('.')
+        arr.forEach((key, index) => {
+            if (index < arr.length - 1) {
+                data = data[key]
+            }else {
+                data[key] = value
+            }
+        })
     }
 }

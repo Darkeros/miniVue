@@ -9,22 +9,22 @@
 <body>
     <div id="app">
         <p>{{msg}}</p>
-        <div>hell阿斯顿发多少</div>
-        <p>hello msg：{{msg}}</p>
-        <div v-html="text"></div>
-        <p v-text="msg" title="haha"></p>
-        <p v-html="msg" title="haha"></p>
+        <p v-text="msg"></p>
+        <p v-html="msg"></p>
         <input type="text" v-modal="msg">
-        <button v-on:click="clickFn">按钮</button>
     </div>
     <script src="./src/vue.js"></script>
+    <script src="./src/observe.js"></script>
     <script src="./src/compile.js"></script>
+    <script src="./src/watcher.js"></script>
     <script>
         const vm = new Vue({
             el: '#app',
             data: {
                 msg: 'hello vue',
-                text: '<h1>haha</h1>'
+                car: {
+                    brand: '宝马'
+                }
             },
             methods: {
                 clickFn () {
